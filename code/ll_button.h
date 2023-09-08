@@ -198,11 +198,10 @@ void ll_btn_attach_by_obj(ll_btn_obj_t *btn, uint8_t cb_type, ll_btn_ops_cb cb);
 void ll_btn_detach_by_obj(ll_btn_obj_t *btn, uint8_t cb_type);
 
 /**
- * @brief This is ll button core, need call in a endless loop, and need a millisecond tick.
+ * @brief This is ll button core, need call in a endless loop.
  *
- * @param curr_tick      A global tick, unit need millisecond
  */
-void ll_btn_tick(uint32_t curr_tick);
+void ll_btn_task(void);
 
 #ifdef __cplusplus
 }

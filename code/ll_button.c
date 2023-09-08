@@ -127,6 +127,12 @@ __weak uint32_t ll_btn_level_get(ll_btn_obj_t *btn)
     return 0;
 }
 
+/* Weak function ,need give a 32-bit global tick in your project */
+__weak uint32_t ll_btn_tick_get(void)
+{
+    return 0;
+}
+
 /* Print all ll buttons */
 void ll_btn_print_list(void)
 {
@@ -359,11 +365,14 @@ void ll_btn_fsm(ll_btn_obj_t *btn, uint32_t curr_tick)
     }
 }
 
-void ll_btn_tick(uint32_t curr_tick)
+/* LL button task, need call in your project loop */
+void ll_btn_task(void)
 {
     ll_btn_obj_t *target = &ll_btn_head;
+    uint32_t curr_tick;
     while (target->next != NULL)
     {
+        curr_tick = ll_btn_tick_get();
         target = target->next;
         uint32_t level = ll_btn_level_get(target);
         ll_btn_debounce(target, curr_tick, level);
