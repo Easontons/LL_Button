@@ -329,7 +329,7 @@ void ll_btn_fsm(ll_btn_obj_t *btn, uint32_t curr_tick)
                 btn->cb[LL_BTN_LONG_PRESS_STOP_CB](btn);
             }
             LL_BTN_DEBUG("button long press stop, tick is %lu.\r\n", btn->tick);
-            btn->state = LL_BTN_UP;
+            btn->state = LL_BTN_RELEASED;
             btn->tick = curr_tick;
         }
         break;
