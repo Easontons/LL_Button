@@ -237,27 +237,28 @@ void ll_btn_debounce(ll_btn_obj_t *btn, uint32_t curr_tick, uint32_t curr_level)
     else if ((curr_level != btn->btn_level) && (btn->is_debouncing == LL_BTN_FALSE))
     {
         btn->is_debouncing = LL_BTN_TRUE;
-        btn->tick = curr_tick;
-        LL_BTN_DEBUG("debounce start, tick is %ld.\r\n", btn->tick);
+        btn->debounce_tick = curr_tick;
+        LL_BTN_DEBUG("debounce start, tick is %ld.\r\n", btn->debounce_tick);
     }
 
     if (btn->is_debouncing == LL_BTN_TRUE)
     {
-        tick_diff = LL_BTN_TICK_DIFF(curr_tick, btn->tick);
+        tick_diff = LL_BTN_TICK_DIFF(curr_tick, btn->debounce_tick);
         if (tick_diff >= btn->debounce_term)
         {
-            if (btn->debounce_cnt >= btn->debounce_again)
+            btn->debounce_cnt++;
+            LL_BTN_DEBUG("debouncing, debounce cnt is %d.\r\n", btn->debounce_cnt);
+            if (btn->debounce_cnt > btn->debounce_again)
             {
                 btn->is_debouncing = LL_BTN_FALSE;
                 btn->btn_level = curr_level;
-                btn->tick = curr_tick;
+                btn->debounce_tick = curr_tick;
                 btn->debounce_cnt = 0;
-                LL_BTN_DEBUG("debounce end, tick is %ld.\r\n", btn->tick);
+                LL_BTN_DEBUG("debounce end, tick is %ld.\r\n", btn->debounce_tick);
             }
             else
             {
-                btn->tick = curr_tick;
-                btn->debounce_cnt++;
+                btn->debounce_tick = curr_tick;
             }
         }
     }
@@ -291,15 +292,7 @@ void ll_btn_fsm(ll_btn_obj_t *btn, uint32_t curr_tick)
     case LL_BTN_PRESSED:
         if (btn->btn_level != btn->active_level)
         {
-            if (tick_diff < btn->tapping_term)
-            {
-                btn->state = LL_BTN_UP;
-            }
-            else
-            {
-                btn->state = LL_BTN_RELEASED;
-            }
-            btn->tick = curr_tick;
+        	btn->state = LL_BTN_UP;
         }
         else if ((btn->btn_level == btn->active_level) && (tick_diff > btn->long_press_term))
         {
@@ -307,11 +300,11 @@ void ll_btn_fsm(ll_btn_obj_t *btn, uint32_t curr_tick)
             {
                 btn->cb[LL_BTN_LONG_PRESS_START_CB](btn);
             }
-            /* if long press trigger, tap dance cnt need clear */
+            /* If long press trigger, tap dance cnt need clear,
+             * it means that long press trigger no tap trigger */
             btn->tapping_cnt = 0;
             btn->state = LL_BTN_PRESSEND;
-            btn->tick = curr_tick;
-            LL_BTN_DEBUG("button long press start, tick is %lu.\r\n", btn->tick);
+            LL_BTN_DEBUG("button long press start, tick is %lu.\r\n", btn->tick + btn->long_press_term);
         }
         break;
     case LL_BTN_PRESSEND:
@@ -328,20 +321,21 @@ void ll_btn_fsm(ll_btn_obj_t *btn, uint32_t curr_tick)
             {
                 btn->cb[LL_BTN_LONG_PRESS_STOP_CB](btn);
             }
-            LL_BTN_DEBUG("button long press stop, tick is %lu.\r\n", btn->tick);
-            btn->state = LL_BTN_RELEASED;
-            btn->tick = curr_tick;
+            btn->state = LL_BTN_UP;
         }
         break;
     case LL_BTN_UP:
-        btn->tapping_cnt++;
+    	if (tick_diff <= btn->tapping_term)
+    	{
+    		btn->tapping_cnt++;
+    	}
         if (btn->cb[LL_BTN_UP_CB])
         {
             btn->cb[LL_BTN_UP_CB](btn);
         }
+        btn->tick = curr_tick;
         LL_BTN_DEBUG("button up, tick is %lu.\r\n", btn->tick);
         btn->state = LL_BTN_RELEASED;
-        btn->tick = curr_tick;
         break;
     case LL_BTN_RELEASED:
         if (btn->btn_level == btn->active_level)

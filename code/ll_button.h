@@ -46,6 +46,7 @@ typedef enum
 typedef struct LL_BTN_OBJ
 {
     volatile uint32_t    tick;
+    volatile uint32_t    debounce_tick;
     uint32_t             active_level : 1;
     volatile uint32_t    btn_level : 1;
     uint32_t             state : 3;
@@ -97,7 +98,7 @@ typedef struct LL_BTN_OBJ
 /* max 65535ms */
 #define LL_BTN_DEFAULT_LONG_PRESS_TERM 500
 /* 70 ~ 120ms better */
-#define LL_BTN_DEFAULT_TAPPING_TERM 100
+#define LL_BTN_DEFAULT_TAPPING_TERM 200
 
 /* ========================== LL BUTTON FUNCTIONS ========================== */
 /**
