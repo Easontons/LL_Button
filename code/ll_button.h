@@ -14,6 +14,8 @@ extern "C"{
 #define __weak __attribute__((__weak__))
 #endif
 
+#define LLB_MALLOC(size)      malloc(size)
+
 /* ll button operations callback function */
 typedef void (*ll_btn_ops_cb)(void*);
 /* ll button level get callback function */
@@ -23,6 +25,7 @@ typedef uint32_t (*ll_btn_level_get_cb)(void*);
 typedef enum
 {
     LL_BTN_INIT = 0,
+    LL_BTN_IDLE,
     LL_BTN_DOWN,
     LL_BTN_PRESSED,
     LL_BTN_PRESSEND,

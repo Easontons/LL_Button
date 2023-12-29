@@ -47,7 +47,7 @@ static void ll_btn_insert(ll_btn_obj_t *btn)
 void ll_btn_dynamic_creat_simple(const char   *name,
                                  uint32_t      active_level)
 {
-    ll_btn_obj_t *btn = (ll_btn_obj_t *)malloc(sizeof(ll_btn_obj_t));
+    ll_btn_obj_t *btn = (ll_btn_obj_t *)LLB_MALLOC(sizeof(ll_btn_obj_t));
     if (btn == NULL)
     {
         return;
@@ -71,7 +71,7 @@ void ll_btn_dynamic_creat(const char  *name,
                           uint32_t     long_press_term,
                           uint32_t     tapping_term)
 {
-    ll_btn_obj_t *btn = (ll_btn_obj_t *)malloc(sizeof(ll_btn_obj_t));
+    ll_btn_obj_t *btn = (ll_btn_obj_t *)LLB_MALLOC(sizeof(ll_btn_obj_t));
     if (btn == NULL)
     {
         return;
@@ -133,6 +133,12 @@ __weak uint32_t ll_btn_tick_get(void)
     return 0;
 }
 
+static void ll_btn_reset(ll_btn_obj_t *button)
+{
+    button->state = LL_BTN_IDLE;
+    button->tick = 0;
+}
+
 /* Print all ll buttons */
 void ll_btn_print_list(void)
 {
@@ -142,13 +148,6 @@ void ll_btn_print_list(void)
         btn = btn->next;
         LL_BTN_DEBUG_NAME("\r\n");
     }
-}
-
-/* Reset button to initial state */
-static void ll_btn_reset(ll_btn_obj_t *btn)
-{
-    btn->state = LL_BTN_INIT;
-    btn->tick = 0;
 }
 
 void ll_btn_attach_by_idx(uint32_t idx, uint8_t cb_type, ll_btn_ops_cb cb)
@@ -275,6 +274,21 @@ void ll_btn_fsm(ll_btn_obj_t *btn, uint32_t curr_tick)
     switch (btn->state)
     {
     case LL_BTN_INIT:
+        if (btn->btn_level == btn->active_level)
+        {
+            btn->state = LL_BTN_DOWN;
+        }
+        else
+        {
+            /* if button at deactive state in start, do button up callback once */
+            if (btn->cb[LL_BTN_UP_CB])
+            {
+                btn->cb[LL_BTN_UP_CB](btn);
+            }
+            btn->state = LL_BTN_IDLE;
+        }
+        break;
+    case LL_BTN_IDLE:
         if (btn->btn_level == btn->active_level)
         {
             btn->state = LL_BTN_DOWN;
